@@ -45,7 +45,13 @@ require('chai')
       // FAILURE: Post must have content
       await socialNetwork.createPost('', { from: author }).should.be.rejected;
     })
-
+    it('lists posts', async () => {
+        const post = await socialNetwork.posts(postCount)
+        assert.equal(post.id.toNumber(), postCount.toNumber(), 'id is correct')
+        assert.equal(post.content, 'This is my first post', 'content is correct')
+        assert.equal(post.tipAmount, '0', 'tip amount is correct')
+        assert.equal(post.author, author, 'author is correct')
+    })
   })
 })
 

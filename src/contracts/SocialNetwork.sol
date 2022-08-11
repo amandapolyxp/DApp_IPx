@@ -2,12 +2,10 @@
 pragma solidity ^0.8.15;
 
 contract SocialNetwork {
-    // State variable
+
     string public name;
     uint public postCount = 0;
-    
 
-    // Constructor function
     constructor (){
         name = "Test bed for bc project testing folders";
     }
@@ -16,23 +14,39 @@ contract SocialNetwork {
         uint id;
         string content;
         uint tipAmount;
-        address author; // this information is given by Solidity as msg.sender
+        address author; 
     }
 
     event PostCreated(
         uint id,
         string content,
         uint tipAmount,
-        address author
+        address payable author
+    );
+
+    event PostTipped(
+        uint id,
+        string content,
+        uint tipAmount,
+        address payable author
     );
 
     mapping(uint => Post) public posts;
 
     function createPost(string memory _content) public{
-        // Require valid content
         require(bytes(_content).length > 0);
         postCount ++;
         posts[postCount] = Post(postCount, _content, 0, msg.sender);
-        emit PostCreated(postCount, _content, 0, msg.sender);
+        emit PostCreated(postCount, _content, 0, payable(msg.sender));
+    }
+
+
+    function tipPost(uint _id) public payable{
+        Post memory _post = posts[_id];
+        address _author = _post.author;
+        payable(_author).transfer(msg.value);
+        _post.tipAmount = _post.tipAmount + msg.value;
+        posts[_id] = _post;
+        emit PostTipped(postCount, _post.content, _post.tipAmount, payable(_post.author));
     }
 }
