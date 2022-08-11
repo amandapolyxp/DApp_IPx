@@ -16,18 +16,8 @@ contract TicketContract{
         Concluded 
     }
 
-    //Ticket[] private ticketsPerUser; 
-
-    // example of mapping
     mapping(uint => Ticket) public tickets;
     uint public ticketCount = 0;
-
-    //address owner;
-
-    /*modifier onlyOwner(){
-        require(msg.sender == owner);
-        _;
-    }*/
 
     struct Ticket{
         uint _id;
@@ -39,47 +29,47 @@ contract TicketContract{
         string _content;
     }
 
-    struct Post {
-        uint id;
-        string content;
-        uint tipAmount;
-        address author; // this information is given by Solidity as msg.sender
-    }
-
     event TicketCreated(
         uint id,
         string content,
         string _type,
         uint tipAmount,
-        address author
+        address payable author
+    );
+    event RoadsTipped(
+        uint id,
+        string content,
+        string _type,
+        TicketStatus ticket,
+        uint tipAmount,
+        address payable author
     );
 
+
     function createTicket(string memory _type, string memory _content) public{
-        // Require valid content
+ 
         require(bytes(_content).length > 0);
         TicketStatus ticket = TicketStatus.Pending;
         incrementCount();
         tickets[ticketCount] = Ticket(ticketCount, ticket, msg.sender, 0, _type, _content);
-        emit TicketCreated(ticketCount, _content, _type, 0, msg.sender);
+        emit TicketCreated(ticketCount, _content, _type, 0, payable(msg.sender));
     }
 
-    /*constructor() public {
-        owner = msg.sender;
-    }*/
+    function tipRoads(uint _id) public payable{
 
-    // how to instance struct
-    //Ticket tPerUser = Ticket(TicketStatus.Pending, "user", "default");
+        require(_id > 0 && _id <= ticketCount);
+        Ticket memory _ticket = tickets[_id];
+        address payable _author = payable(_ticket.author);
+        _author.transfer(msg.value);
+        _ticket.tipAmount = _ticket.tipAmount + msg.value;
+        tickets[_id] = _ticket;
+        emit RoadsTipped(ticketCount, _ticket._content, _ticket._type,_ticket.ticket, _ticket.tipAmount, payable(_ticket.author));
 
-
-    // update info and THEN add to array
-
-    // auto-increment ticket id
+    }
+    
     function incrementCount() internal{
         ticketCount += 1;
     }
-
-    // mapping with ticket id
-
 
     function pending(uint _tId) public {
  
